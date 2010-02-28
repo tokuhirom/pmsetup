@@ -1,0 +1,280 @@
+#!/usr/local/bin/perl
+
+use strict;
+use warnings;
+use ExtUtils::MakeMaker qw(prompt);
+use File::Basename;
+use File::Path;
+use File::Spec;
+use Template;
+use YAML;
+use Config::Pit;
+
+our $VERSION = '0.01';
+
+my $config = pit_get(
+    'pmsetup',
+    require => {
+        author        => 'Tokuhiro Matsuno',
+        email         => 'tokuhirom AAJKLFJEF GMAIL COM',
+    }
+);
+
+my $modname = shift @ARGV or die "Usage: $0 module\n";
+   $modname =~ s/-/::/g;
+
+write_plugin_files($modname, $config);
+
+sub write_plugin_files {
+    my($module, $config) = @_;
+
+    # $module = "Foo::Bar"
+    # $dist   = "Foo-Bar"
+    # $path   = "Foo/Bar.pm"
+    my @pkg  = split /::/, $module;
+    my $dist = join "-", @pkg;
+    my $path = join("/", @pkg) . ".pm";
+
+    mkdir $dist, 0777;
+    chdir $dist;
+
+    my @template = YAML::Load(join '', <DATA>);
+    my $vars = { module => $module, dist => $dist, path => $path,
+                 config => $config, localtime => scalar localtime };
+
+    for my $tmpl (@template) {
+        my $file = $tmpl->{file};
+           $file =~ s/(\$\w+)/$1/eeg;
+        write_file($file, $tmpl->{template}, $vars);
+        chmod oct($tmpl->{chmod}), $tmpl->{file} if $tmpl->{chmod};
+    }
+
+    !system "perl Makefile.PL" or die $?;
+    !system 'make test' or die $?;
+    !system 'make manifest' or die $?;
+    !system 'make distclean' or die $?;
+
+    # import to svk
+    !system("git init") or die $?;
+    !system("git add .") or die $?;
+    !system("git ci -m 'initial import'") or die $?;
+}
+
+sub write_file {
+    my($path, $template, $vars) = @_;
+
+    if (-e $path) {
+        my $ans = prompt("$path exists. Override? [yN] ", 'n');
+        return if $ans !~ /[Yy]/;
+    }
+
+    my $dir = File::Basename::dirname($path);
+    unless (-e $dir) {
+        warn "Creating directory $dir\n";
+        File::Path::mkpath($dir, 1, 0777);
+    }
+
+    my $tt = Template->new;
+    $tt->process(\$template, $vars, \my $content);
+
+    warn "Creating $path\n";
+    open my $out, ">", $path or die "$path: $!";
+    print $out $content;
+    close $out;
+}
+
+=pod
+
+original L<http://svn.bulknews.net/repos/public/misc/pmsetup>
+
+=cut
+
+__DATA__
+---
+file: Makefile.PL
+template: |
+  use inc::Module::Install;
+  name '[% dist %]';
+  all_from 'lib/[% path %]';
+
+  # requires '';
+
+  tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
+  test_requires 'Test::More';
+  test_requires 'YAML';
+  author_tests 'xt';
+  use_test_base;
+  auto_include;
+  WriteAll;
+---
+file: t/00_compile.t
+template: |
+  use strict;
+  use Test::More tests => 1;
+
+  BEGIN { use_ok '[% module %]' }
+---
+file: xt/01_podspell.t
+template: |
+  use Test::More;
+  eval q{ use Test::Spelling };
+  plan skip_all => "Test::Spelling is not installed." if $@;
+  add_stopwords(map { split /[\s\:\-]/ } <DATA>);
+  $ENV{LANG} = 'C';
+  all_pod_files_spelling_ok('lib');
+  __DATA__
+  [% config.author %]
+  [% module %]
+  tokuhirom
+  AAJKLFJEF
+  GMAIL
+  COM
+  Tatsuhiko
+  Miyagawa
+  Kazuhiro
+  Osawa
+  lestrrat
+  typester
+  cho45
+  charsbar
+  coji
+  clouder
+  gunyarakun
+  hio_d
+  hirose31
+  ikebe
+  kan
+  kazeburo
+  daisuke
+  maki
+  TODO
+---
+file: xt/02_perlcritic.t
+template: |
+  use strict;
+  use Test::More;
+  eval { use Test::Perl::Critic -profile => 'xt/perlcriticrc' };
+  plan skip_all => "Test::Perl::Critic is not installed." if $@;
+  all_critic_ok('lib');
+---
+file: xt/03_pod.t
+template: |
+  use Test::More;
+  eval "use Test::Pod 1.00";
+  plan skip_all => "Test::Pod 1.00 required for testing POD" if $@;
+  all_pod_files_ok();
+---
+file: xt/perlcriticrc
+template: |
+  [TestingAndDebugging::ProhibitNoStrict]
+  allow=refs
+---
+file: Changes
+template: |
+  Revision history for Perl extension [% module %]
+
+  0.01    [% localtime %]
+          - original version
+---
+file: lib/$path
+template: |
+  package [% module %];
+  use strict;
+  use warnings;
+  use 5.00800;
+  our $VERSION = '0.01';
+
+  1;
+  __END__
+
+  =encoding utf8
+
+  =head1 NAME
+
+  [% module %] -
+
+  =head1 SYNOPSIS
+
+    use [% module %];
+
+  =head1 DESCRIPTION
+
+  [% module %] is
+
+  =head1 AUTHOR
+
+  [% config.author %] E<lt>[% config.email %]E<gt>
+
+  =head1 SEE ALSO
+
+  =head1 LICENSE
+
+  This library is free software; you can redistribute it and/or modify
+  it under the same terms as Perl itself.
+
+  =cut
+---
+file: MANIFEST.SKIP
+template: |
+  ^\.git/
+  \bRCS\b
+  \bCVS\b
+  ^MANIFEST\.
+  ^Makefile$
+  ~$
+  ^#
+  \.old$
+  ^blib/
+  ^pm_to_blib
+  ^MakeMaker-\d
+  \.gz$
+  \.cvsignore
+  ^t/perlcritic
+  ^tools/
+  \.svn/
+  ^[^/]+\.yaml$
+  ^[^/]+\.pl$
+  ^\.shipit$
+  \.sw[po]$
+---
+file: README
+template: |
+  This is Perl module [% module %].
+
+  INSTALLATION
+
+  [% module %] installation is straightforward. If your CPAN shell is set up,
+  you should just be able to do
+
+      % cpan [% module %]
+
+  Download it, unpack it, then build it as per the usual:
+
+      % perl Makefile.PL
+      % make && make test
+
+  Then install it:
+
+      % make install
+
+  DOCUMENTATION
+
+  [% module %] documentation is available as in POD. So you can do:
+
+      % perldoc [% module %]
+
+  to read the documentation online with your favorite pager.
+
+  [% config.author %]
+---
+file: .shipit
+chmod: 0644
+template: |
+  steps = FindVersion, ChangeVersion, CheckChangeLog, DistTest, Commit, Tag, MakeDist, UploadCPAN
+  git.push_to=origin
+---
+file: .gitignore
+chmod: 0644
+template: |
+  Makefile
+  inc/
