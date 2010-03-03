@@ -7,6 +7,7 @@ requires 'Template';
 requires 'Module::Install::AuthorTests';
 requires 'Module::Install::XSUtil';
 requires 'Module::Install::ReadmeMarkdownFromPod';
+requires 'Module::Install::CheckLib';
 
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
 install_script 'pmsetup';
