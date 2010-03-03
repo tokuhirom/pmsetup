@@ -9,6 +9,11 @@ use File::Spec;
 use Template;
 use YAML;
 use Config::Pit;
+use Getopt::Long;
+
+GetOptions(
+    'xs' => \my $xs,
+);
 
 our $VERSION = '0.01';
 
@@ -99,11 +104,12 @@ template: |
 
   # requires '';
 
+  readme_markdown_from 'lib/[% path %]';
   tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
   test_requires 'Test::More';
   test_requires 'YAML';
   author_tests 'xt';
-  use_test_base;
+  # use_test_base;
   auto_include;
   WriteAll;
 ---
@@ -209,6 +215,8 @@ template: |
 
   =head1 LICENSE
 
+  Copyright (C) [% config.author %]
+
   This library is free software; you can redistribute it and/or modify
   it under the same terms as Perl itself.
 
@@ -236,36 +244,6 @@ template: |
   ^[^/]+\.pl$
   ^\.shipit$
   \.sw[po]$
----
-file: README
-template: |
-  This is Perl module [% module %].
-
-  INSTALLATION
-
-  [% module %] installation is straightforward. If your CPAN shell is set up,
-  you should just be able to do
-
-      % cpan [% module %]
-
-  Download it, unpack it, then build it as per the usual:
-
-      % perl Makefile.PL
-      % make && make test
-
-  Then install it:
-
-      % make install
-
-  DOCUMENTATION
-
-  [% module %] documentation is available as in POD. So you can do:
-
-      % perldoc [% module %]
-
-  to read the documentation online with your favorite pager.
-
-  [% config.author %]
 ---
 file: .shipit
 chmod: 0644
