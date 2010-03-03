@@ -3,7 +3,7 @@ name 'pmsetup';
 all_from 'pmsetup';
 
 requires 'YAML';
-requires 'Template';
+requires 'Template::Tiny';
 requires 'Module::Install::AuthorTests';
 requires 'Module::Install::XSUtil';
 requires 'Module::Install::ReadmeMarkdownFromPod';

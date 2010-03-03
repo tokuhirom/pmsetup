@@ -6,7 +6,7 @@ use ExtUtils::MakeMaker qw(prompt);
 use File::Basename;
 use File::Path;
 use File::Spec;
-use Template;
+use Template::Tiny;
 use YAML;
 use Config::Pit;
 use Getopt::Long;
@@ -79,7 +79,7 @@ sub write_file {
         File::Path::mkpath($dir, 1, 0777);
     }
 
-    my $tt = Template->new;
+    my $tt = Template::Tiny->new;
     $tt->process(\$template, $vars, \my $content);
 
     warn "Creating $path\n";
