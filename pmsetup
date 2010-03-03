@@ -34,20 +34,30 @@ sub write_plugin_files {
     my($module, $config) = @_;
 
     # $module = "Foo::Bar"
+    # $suffix = "Bar"
     # $dist   = "Foo-Bar"
     # $path   = "Foo/Bar.pm"
-    my @pkg  = split /::/, $module;
-    my $dist = join "-", @pkg;
-    my $path = join("/", @pkg) . ".pm";
+    my @pkg    = split /::/, $module;
+    my $suffix = $pkg[ @pkg - 1 ];
+    my $dist   = join "-", @pkg;
+    my $path   = join( "/", @pkg ) . ".pm";
 
     mkdir $dist, 0777;
     chdir $dist;
 
     my @template = YAML::Load(join '', <DATA>);
-    my $vars = { module => $module, dist => $dist, path => $path,
-                 config => $config, localtime => scalar localtime };
+    my $vars = {
+        module    => $module,
+        dist      => $dist,
+        path      => $path,
+        xs        => $xs,
+        config    => $config,
+        localtime => scalar localtime
+    };
 
     for my $tmpl (@template) {
+        next if $tmpl->{xs} && !$xs;
+
         my $file = $tmpl->{file};
            $file =~ s/(\$\w+)/$1/eeg;
         write_file($file, $tmpl->{template}, $vars);
@@ -96,6 +106,15 @@ original L<http://svn.bulknews.net/repos/public/misc/pmsetup>
 
 __DATA__
 ---
+xs: 1
+file: $suffix.xs
+template: |
+  #include "EXTERN.h"
+  #include "perl.h"
+  #include "XSUB.h"
+
+  MODULE = [% module %]    PACKAGE = [% module %]
+---
 file: Makefile.PL
 template: |
   use inc::Module::Install;
@@ -103,6 +122,10 @@ template: |
   all_from 'lib/[% path %]';
 
   # requires '';
+  [% IF xs %]
+  use_ppport 3.19;
+  cc_warnings;
+  [% END %]
 
   readme_markdown_from 'lib/[% path %]';
   tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
@@ -189,6 +212,11 @@ template: |
   use warnings;
   use 5.00800;
   our $VERSION = '0.01';
+
+  [% IF xs %]
+  require XSLoader;
+  XSLoader::load('[% module %]', $VERSION);
+  [% END %]
 
   1;
   __END__
