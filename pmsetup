@@ -284,3 +284,6 @@ chmod: 0644
 template: |
   Makefile
   inc/
+  [% suffix %].c
+  ppport.h
+
