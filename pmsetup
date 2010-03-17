@@ -197,6 +197,7 @@ file: xt/perlcriticrc
 template: |
   [TestingAndDebugging::ProhibitNoStrict]
   allow=refs
+  [-Subroutines::ProhibitSubroutinePrototypes]
 ---
 file: Changes
 template: |
