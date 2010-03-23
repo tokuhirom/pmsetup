@@ -274,6 +274,7 @@ template: |
   ^[^/]+\.pl$
   ^\.shipit$
   \.sw[po]$
+  ^Build$
 ---
 file: .shipit
 chmod: 0644
@@ -288,4 +289,7 @@ template: |
   inc/
   [% suffix %].c
   ppport.h
+  *.sw[po]
+  *.bak
+  *.old
 
