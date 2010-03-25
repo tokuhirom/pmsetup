@@ -292,4 +292,6 @@ template: |
   *.sw[po]
   *.bak
   *.old
+  Build
+  _build/
 
