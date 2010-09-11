@@ -3,9 +3,10 @@ name 'pmsetup';
 all_from 'pmsetup';
 
 requires 'YAML';
-requires 'Template::Tiny';
+requires 'Text::Xslate' => 0.2004;
+requires 'Module::Install' => 1.00;
 requires 'Module::Install::AuthorTests';
-requires 'Module::Install::XSUtil';
+requires 'Module::Install::XSUtil' => 0.30;
 requires 'Module::Install::ReadmeMarkdownFromPod';
 requires 'Module::Install::CheckLib';
 

@@ -6,7 +6,7 @@ use ExtUtils::MakeMaker qw(prompt);
 use File::Basename;
 use File::Path;
 use File::Spec;
-use Template::Tiny;
+use Text::Xslate;
 use YAML;
 use Config::Pit;
 use Getopt::Long;
@@ -69,7 +69,7 @@ sub write_plugin_files {
     !system 'make manifest' or die $?;
     !system 'make distclean' or die $?;
 
-    # import to svk
+    # initialize git repository
     !system("git init") or die $?;
     !system("git add .") or die $?;
     !system("git ci -m 'initial import'") or die $?;
@@ -89,8 +89,8 @@ sub write_file {
         File::Path::mkpath($dir, 1, 0777);
     }
 
-    my $tt = Template::Tiny->new;
-    $tt->process(\$template, $vars, \my $content);
+    my $tt = Text::Xslate->new(syntax => 'TTerse');
+    my $content = $tt->render_string($template, $vars);
 
     warn "Creating $path\n";
     open my $out, ">", $path or die "$path: $!";
@@ -123,7 +123,7 @@ template: |
 
   # requires '';
   [% IF xs %]
-  use_ppport 3.19;
+  use_xshelper();
   cc_warnings;
   [% END %]
 
@@ -277,6 +277,8 @@ template: |
   ^\.shipit$
   \.sw[po]$
   ^Build$
+  ^ppport.h$
+  ^xshelper.h$
 ---
 file: .shipit
 chmod: 0644
@@ -296,4 +298,5 @@ template: |
   *.old
   Build
   _build/
+  xshelper.h
 
