@@ -122,6 +122,9 @@ template: |
   all_from 'lib/[% path %]';
 
   # requires '';
+  # requires 'Exporter' => 5.63; # use Exporter 'import';
+  # requires 'Plack' =>  0.9949;
+
   [% IF xs %]
   use_xshelper();
   cc_warnings;
@@ -129,11 +132,10 @@ template: |
 
   readme_markdown_from 'lib/[% path %]';
   tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
-  test_requires 'Test::More';
-  test_requires 'YAML';
+  test_requires 'Test::More' => 0.96; # done_testing, subtest
   author_tests('xt');
+  # test_requires 'YAML'; # required for use_test_base.
   # use_test_base;
-  auto_include;
   WriteAll;
 ---
 file: t/00_compile.t
