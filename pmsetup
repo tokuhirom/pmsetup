@@ -179,6 +179,10 @@ template: |
   daisuke
   maki
   TODO
+  API
+  URL
+  URI
+  db
 ---
 file: xt/02_perlcritic.t
 template: |
