@@ -107,7 +107,7 @@ original L<http://svn.bulknews.net/repos/public/misc/pmsetup>
 __DATA__
 ---
 xs: 1
-file: $suffix.xs
+file: xs/$suffix.xs
 template: |
   #include "EXTERN.h"
   #include "perl.h"
@@ -118,8 +118,14 @@ template: |
 file: Makefile.PL
 template: |
   use inc::Module::Install;
+  [% IF xs -%]
+  use Module::Install::XSUtil 0.36;
+  [% END -%]
+  use Module::Install::AuthorTests;
+  use Module::Install::ReadmeMarkdownFromPod;
+
   name '[% dist %]';
-  all_from 'lib/[% path %]';
+  reference_module 'lib/[% path %]'; # all_from, readme_from, readme_markdown_from
 
   # requires '';
   # requires 'Exporter' => 5.63; # use Exporter 'import';
@@ -128,11 +134,12 @@ template: |
   [% IF xs %]
   use_xshelper();
   cc_warnings;
+  cc_src_paths qw(xs);
   [% END %]
 
-  readme_markdown_from 'lib/[% path %]';
   tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
   test_requires 'Test::More' => 0.96; # done_testing, subtest
+  # test_requires 'Test::Requires';
   author_tests('xt');
   # test_requires 'YAML'; # required for use_test_base.
   # use_test_base;
@@ -285,6 +292,9 @@ template: |
   ^Build$
   ^ppport.h$
   ^xshelper.h$
+  cover_db
+  nytprof
+  perltidy.ERR$
 ---
 file: .shipit
 chmod: 0644
