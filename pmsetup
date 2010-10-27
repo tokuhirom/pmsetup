@@ -13,7 +13,14 @@ use Getopt::Long;
 
 GetOptions(
     'xs' => \my $xs,
+    'help' => \my $help,
 );
+usage() if $help;
+
+sub usage {
+    print "Usage: $0 [--xs] Module\n";
+    exit 0;
+}
 
 our $VERSION = '0.02';
 
@@ -25,7 +32,7 @@ my $config = pit_get(
     }
 );
 
-my $modname = shift @ARGV or die "Usage: $0 module\n";
+my $modname = shift @ARGV or usage();
    $modname =~ s/-/::/g;
 
 write_plugin_files($modname, $config);
