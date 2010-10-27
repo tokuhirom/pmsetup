@@ -116,9 +116,7 @@ __DATA__
 xs: 1
 file: xs/$suffix.xs
 template: |
-  #include "EXTERN.h"
-  #include "perl.h"
-  #include "XSUB.h"
+  #include "xshelper.h"
 
   MODULE = [% module %]    PACKAGE = [% module %]
 ---
