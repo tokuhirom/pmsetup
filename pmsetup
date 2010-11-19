@@ -301,6 +301,7 @@ template: |
   cover_db
   nytprof
   perltidy.ERR$
+  ^tags$
 ---
 file: .shipit
 chmod: 0644
@@ -321,4 +322,5 @@ template: |
   Build
   _build/
   xshelper.h
+  tags
 
