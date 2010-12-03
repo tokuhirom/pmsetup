@@ -71,6 +71,8 @@ sub write_plugin_files {
         chmod oct($tmpl->{chmod}), $tmpl->{file} if $tmpl->{chmod};
     }
 
+    !system "ln -s lib/$path README.pod" or die $?;
+
     !system "perl Makefile.PL" or die $?;
     !system 'make test' or die $?;
     !system 'make manifest' or die $?;
@@ -127,11 +129,9 @@ template: |
   use Module::Install::XSUtil 0.36;
   [% END -%]
   use Module::Install::AuthorTests;
-  use Module::Install::ReadmeMarkdownFromPod;
 
   name '[% dist %]';
   all_from 'lib/[% path %]';
-  readme_markdown_from 'lib/[% path %]';
 
   # requires '';
   # requires 'Exporter' => 5.63; # use Exporter 'import';
@@ -147,8 +147,6 @@ template: |
   test_requires 'Test::More' => 0.96; # done_testing, subtest
   # test_requires 'Test::Requires';
   author_tests('xt');
-  # test_requires 'YAML'; # required for use_test_base.
-  # use_test_base;
   WriteAll;
 ---
 file: t/00_compile.t
@@ -323,4 +321,29 @@ template: |
   _build/
   xshelper.h
   tags
-
+---
+file: README
+template: |
+  This is Perl module [% module %].
+  
+  INSTALLATION
+  
+  [% module %] installation is straightforward. If your CPAN shell is set up,
+  you should just be able to do
+  
+  % cpan [% module %]
+  
+  Download it, unpack it, then build it as per the usual:
+  
+  % perl Makefile.PL
+  % make && make test
+  
+  Then install it:
+  
+  % make install
+  
+  DOCUMENTATION
+  
+  [% module %] documentation is available as in POD. So you can do:
+  
+  % perldoc [% module %]
