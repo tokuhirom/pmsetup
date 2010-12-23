@@ -130,7 +130,8 @@ template: |
   use Module::Install::ReadmeMarkdownFromPod;
 
   name '[% dist %]';
-  reference_module 'lib/[% path %]'; # all_from, readme_from, readme_markdown_from
+  all_from 'lib/[% path %]';
+  readme_markdown_from 'lib/[% path %]';
 
   # requires '';
   # requires 'Exporter' => 5.63; # use Exporter 'import';
@@ -300,6 +301,7 @@ template: |
   cover_db
   nytprof
   perltidy.ERR$
+  ^README.pod$
 ---
 file: .shipit
 chmod: 0644
