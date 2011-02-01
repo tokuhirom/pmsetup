@@ -71,6 +71,8 @@ sub write_plugin_files {
         chmod oct($tmpl->{chmod}), $tmpl->{file} if $tmpl->{chmod};
     }
 
+    !system "ln -s lib/$path README.pod" or die $?;
+
     !system "perl Makefile.PL" or die $?;
     !system 'make test' or die $?;
     !system 'make manifest' or die $?;
@@ -127,11 +129,9 @@ template: |
   use Module::Install::XSUtil 0.36;
   [% END -%]
   use Module::Install::AuthorTests;
-  use Module::Install::ReadmeMarkdownFromPod;
 
   name '[% dist %]';
   all_from 'lib/[% path %]';
-  readme_markdown_from 'lib/[% path %]';
 
   # requires '';
   # requires 'Exporter' => 5.63; # use Exporter 'import';
@@ -147,8 +147,6 @@ template: |
   test_requires 'Test::More' => 0.96; # done_testing, subtest
   # test_requires 'Test::Requires';
   author_tests('xt');
-  # test_requires 'YAML'; # required for use_test_base.
-  # use_test_base;
   WriteAll;
 ---
 file: t/00_compile.t
@@ -201,8 +199,15 @@ file: xt/02_perlcritic.t
 template: |
   use strict;
   use Test::More;
-  eval { use Test::Perl::Critic -profile => 'xt/perlcriticrc' };
-  plan skip_all => "Test::Perl::Critic is not installed." if $@;
+  eval q{
+      use Test::Perl::Critic 1.02 -exclude => [
+          'Subroutines::ProhibitSubroutinePrototypes',
+          'Subroutines::ProhibitExplicitReturnUndef',
+          'TestingAndDebugging::ProhibitNoStrict',
+          'ControlStructures::ProhibitMutatingListFunctions',
+      ]
+  };
+  plan skip_all => "Test::Perl::Critic 1.02+ is not installed." if $@;
   all_critic_ok('lib');
 ---
 file: xt/03_pod.t
@@ -211,15 +216,6 @@ template: |
   eval "use Test::Pod 1.00";
   plan skip_all => "Test::Pod 1.00 required for testing POD" if $@;
   all_pod_files_ok();
----
-file: xt/perlcriticrc
-template: |
-  [TestingAndDebugging::ProhibitNoStrict]
-  allow=refs
-  [-Subroutines::ProhibitSubroutinePrototypes]
-  [-Subroutines::ProhibitExplicitReturnUndef]
-  [TestingAndDebugging::RequireUseStrict]
-  equivalent_modules = perl5i::2
 ---
 file: Changes
 template: |
@@ -302,6 +298,7 @@ template: |
   nytprof
   perltidy.ERR$
   ^README.pod$
+  ^tags$
 ---
 file: .shipit
 chmod: 0644
@@ -322,4 +319,30 @@ template: |
   Build
   _build/
   xshelper.h
-
+  tags
+---
+file: README
+template: |
+  This is Perl module [% module %].
+  
+  INSTALLATION
+  
+  [% module %] installation is straightforward. If your CPAN shell is set up,
+  you should just be able to do
+  
+  % cpan [% module %]
+  
+  Download it, unpack it, then build it as per the usual:
+  
+  % perl Makefile.PL
+  % make && make test
+  
+  Then install it:
+  
+  % make install
+  
+  DOCUMENTATION
+  
+  [% module %] documentation is available as in POD. So you can do:
+  
+  % perldoc [% module %]
