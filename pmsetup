@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use ExtUtils::MakeMaker qw(prompt);
 use File::Basename;
 use File::Path;
@@ -48,9 +48,10 @@ sub write_plugin_files {
     my $suffix = $pkg[ @pkg - 1 ];
     my $dist   = join "-", @pkg;
     my $path   = join( "/", @pkg ) . ".pm";
+    (my $dir    = $dist) =~ s/^App-//;
 
-    mkdir $dist, 0777;
-    chdir $dist;
+    mkdir $dir, 0777;
+    chdir $dir;
 
     my @template = YAML::Load(join '', <DATA>);
     my $vars = {
