@@ -221,6 +221,7 @@ template: |
           'Subroutines::ProhibitExplicitReturnUndef',
           'TestingAndDebugging::ProhibitNoStrict',
           'ControlStructures::ProhibitMutatingListFunctions',
+          'InputOutput::RequireEncodingWithUTF8Layer',
       ]
   };
   plan skip_all => "Test::Perl::Critic 1.02+ is not installed." if $@;
@@ -233,19 +234,26 @@ template: |
   plan skip_all => "Test::Pod 1.00 required for testing POD" if $@;
   all_pod_files_ok();
 ---
+file: xt/04_minimum_version.t
+template: |
+  use Test::More;
+  eval "use Test::MinimumVersion 0.101080";
+  plan skip_all => "Test::Minimumversion required for testing perl minimum version" if $@;
+  all_minimum_version_from_metayml_ok();
+---
 file: Changes
 template: |
   Revision history for Perl extension [% module %]
 
   0.01    [% localtime %]
-          - original version
+      - original version
 ---
 file: lib/$path
 template: |
   package [% module %];
   use strict;
   use warnings;
-  use 5.008001;
+  use 5.008008;
   our $VERSION = '0.01';
 
   [% IF xs %]
