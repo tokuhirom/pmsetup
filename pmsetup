@@ -2,6 +2,7 @@
 
 use strict;
 use warnings FATAL => 'all';
+use v5.12;
 use ExtUtils::MakeMaker qw(prompt);
 use File::Basename;
 use File::Path;
@@ -10,10 +11,15 @@ use Text::Xslate;
 use YAML;
 use Config::Pit;
 use Getopt::Long;
+use autodie ':all';
+use YAML::Tiny;
+use Data::Dumper;
+use Perl::Tidy;
 
 GetOptions(
     'xs' => \my $xs,
     'help' => \my $help,
+    'upgrade' => \my $upgrade,
 );
 usage() if $help;
 
@@ -32,10 +38,127 @@ my $config = pit_get(
     }
 );
 
-my $modname = shift @ARGV or usage();
-   $modname =~ s/-/::/g;
+if ($upgrade) {
+    CMD_upgrade();
+} else {
+    my $modname = shift @ARGV or usage();
+       $modname =~ s/-/::/g;
+    write_plugin_files($modname, $config);
+}
+exit;
 
-write_plugin_files($modname, $config);
+sub slurp {
+    my ($fname) = @_;
+    open my $fh, '<:utf8', $fname;
+    do { local $/; <$fh> };
+}
+
+sub write_file2 {
+    my ($fname, $content) = @_;
+    open my $fh, '>:utf8', $fname;
+    print {$fh} $content;
+}
+
+sub CMD_upgrade {
+    my @templates = YAML::Load(join '', <DATA>);
+    require Perl::Tidy;
+
+    for my $file (qw(MANIFEST.SKIP .gitignore)) {
+        open my $ifh, '<:utf8', $file;
+        my @lines = map { s/\n//r } <$ifh>;
+        my @rules = grep !/^#!include_default$/, grep !/\[%/, split /\n/, [map { $_->{template} } grep { $_->{file} eq $file } @templates]->[0];
+        if ($file eq 'MANIFEST.SKIP') {
+            my $meta = YAML::Tiny::Load(slurp 'META.yml');
+            if ($file eq 'MANIFEST.SKIP') {
+                push @rules, sprintf("^%s-", $meta->{name});
+            } elsif ($file eq '.gitignore') {
+                push @rules, sprintf("%s-*/", $meta->{name});
+            } else {
+                die "ABORT";
+            }
+        }
+
+        open my $ofh, '>:utf8', $file;
+        print {$ofh} join("\n", @lines)."\n";
+        my %lines = map { $_ => 1 } @lines;
+        for my $rule (@rules) {
+            next if $lines{$rule};
+            print {$ofh} $rule."\n";
+        }
+        system("git add $file");
+    }
+
+    # switch to M::B
+    if (-f 'Makefile.PL') {
+        system('perl Makefile.PL');
+        my $meta = YAML::Tiny::Load(slurp 'META.yml');
+        delete $meta->{configure_requires}->{'ExtUtils::MakeMaker'};
+        delete $meta->{build_requires}->{'ExtUtils::MakeMaker'};
+        $meta->{configure_requires}->{'Module::Build'} = '0.38';
+
+        my $makefile_pl = slurp('Makefile.PL');
+        my ($module_name) = ($makefile_pl =~ /all_from\s*["'](.+?)["']/);
+        $module_name or die "Cannot determine module name from Makefile.PL: " . $makefile_pl;
+        $module_name =~ s!^lib/!!;
+        $module_name =~ s!\.pm$!!;
+        $module_name =~ s!/!::!g;
+
+        # TODO: apply perltidy
+        local $Data::Dumper::Terse = 1;
+        write_file2('Build.PL', Text::Xslate->new(syntax => 'TTerse', type => 'text', module => ['Data::Dumper', 'Text::Xslate::Bridge::TT2Like'])->render_string(
+            <<'...', +{%$meta, module_name => $module_name}));
+use strict;
+use warnings FATAL => 'all';
+use Module::Build;
+
+my $build = Module::Build->new(
+    license => '[% license %]',
+    recursive_test_files => 1,
+    dynamic_config => 0,
+    build_requires => [% Dumper(build_requires) -%],
+    configure_requires => [% Dumper(configure_requires) -%],
+    requires => [% Dumper(requires) -%],
+    no_index => [% Dumper(no_index) -%],
+    name => '[% name %]',
+    module_name => '[% module_name %]',
+
+    test_files => -d '.git' ? 't/ xt/' : 't/',
+
+    create_readme => 1,
+    create_license => 1,
+);
+$build->create_build_script();
+...
+        system("perltidy -b Build.PL");
+        system("cp META.yml META.yml.bak");
+        system("rm -rf inc/ Makefile");
+        unlink('MANIFEST') if -f 'MANIFEST';
+        system("git rm README") if -f 'README';
+        system("git rm Makefile.PL");
+        system("perl Build.PL");
+        system("./Build manifest");
+        system("./Build distmeta");
+        system("git add LICENSE Build.PL");
+    }
+
+    for (glob("*/perlcriticrc")) {
+        system("git rm $_");
+    }
+    unlink 'xt/02_perlcritic.t' if -f 'xt/02_perlcritic.t';
+    for (grep { $_->{file} =~ m{^xt/} } @templates) {
+        next if -f $_->{file};
+        write_file2($_->{file}, $_->{template});
+    }
+    system("git add xt/");
+
+    system("perl Build.PL");
+    unlink('MANIFEST') if -f 'MANIFEST';
+    system("./Build manifest");
+    system("./Build test");
+    system("./Build disttest");
+    system("./Build distclean");
+    system("rm -f *.bak");
+}
 
 sub write_plugin_files {
     my($module, $config) = @_;
@@ -333,6 +456,12 @@ template: |
   ^README.mkdn$
   ^tags$
   ^[% dist %]-
+  ^MYMETA\.
+  \b_build
+  \binc/
+  ^MANIFEST\.SKIP
+  \b\.gitignore
+  \.bak$
 ---
 file: .shipit
 chmod: 0644
@@ -358,6 +487,9 @@ template: |
   blib/
   META.yml
   MYMETA.*
+  META.json
+  META.yml
+  README
 ---
 file: README
 template: |

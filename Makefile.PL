@@ -10,6 +10,13 @@ requires 'Module::Install::XSUtil' => 0.30;
 requires 'Module::Install::CheckLib';
 requires 'ExtUtils::Manifest' => 1.58;
 requires 'Config::Pit';
+requires 'IPC::System::Simple';
+requires 'autodie';
+requires 'YAML::Tiny';
+requires 'Module::Build' => 0.38;
+requires 'Software::License';
+requires 'Perl::Tidy';
+requires 'Test::Spelling';
 
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
 install_script 'pmsetup';
