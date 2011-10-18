@@ -8,6 +8,7 @@ requires 'Module::Install' => 1.00;
 requires 'Module::Install::AuthorTests';
 requires 'Module::Install::XSUtil' => 0.30;
 requires 'Module::Install::CheckLib';
+requires 'ExtUtils::Manifest' => 1.58;
 requires 'Config::Pit';
 
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
