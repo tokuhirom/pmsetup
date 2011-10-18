@@ -241,6 +241,13 @@ template: |
   plan skip_all => "Test::Minimumversion required for testing perl minimum version" if $@;
   all_minimum_version_from_metayml_ok();
 ---
+file: xt/05_cpan_meta.t
+template: |
+  use Test::More;
+  eval "use Test::CPAN::Meta";
+  plan skip_all => "Test::CPAN::Meta required for testing META.yml" if $@;
+  meta_yaml_ok();
+---
 file: Changes
 template: |
   Revision history for Perl extension [% module %]
@@ -295,6 +302,7 @@ template: |
 ---
 file: MANIFEST.SKIP
 template: |
+  #!include_default
   ^\.git/
   \bRCS\b
   \bCVS\b
@@ -322,7 +330,9 @@ template: |
   nytprof
   perltidy.ERR$
   ^README.pod$
+  ^README.mkdn$
   ^tags$
+  ^[% dist %]-
 ---
 file: .shipit
 chmod: 0644
