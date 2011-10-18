@@ -33,6 +33,8 @@ my $build = Module::Build->new(
     dist_version_from => 'pmsetup',
     dist_abstract    => 'pmsetup',
 
+    script_files => ['pmsetup'],
+
     test_files => -d '.git' ? 't/ xt/' : 't/',
 
     create_readme  => 1,
