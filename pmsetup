@@ -67,7 +67,7 @@ sub CMD_upgrade {
         open my $ifh, '<:utf8', $file;
         my @lines = map { s/\n//r } <$ifh>;
         my @rules = grep !/^#!include_default$/, grep !/\[%/, split /\n/, [map { $_->{template} } grep { $_->{file} eq $file } @templates]->[0];
-        if ($file eq 'MANIFEST.SKIP') {
+        if (-f 'META.yml') {
             my $meta = YAML::Tiny::Load(slurp 'META.yml');
             if ($file eq 'MANIFEST.SKIP') {
                 push @rules, sprintf("^%s-", $meta->{name});
@@ -145,6 +145,7 @@ $build->create_build_script();
         system("git rm $_");
     }
     unlink 'xt/02_perlcritic.t' if -f 'xt/02_perlcritic.t';
+    mkpath('xt');
     for (grep { $_->{file} =~ m{^xt/} } @templates) {
         next if -f $_->{file};
         write_file2($_->{file}, $_->{template});
