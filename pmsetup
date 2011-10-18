@@ -20,6 +20,7 @@ GetOptions(
     'xs' => \my $xs,
     'help' => \my $help,
     'upgrade' => \my $upgrade,
+    'eumm' => \my $eumm,
 );
 usage() if $help;
 
@@ -89,7 +90,7 @@ sub CMD_upgrade {
     }
 
     # switch to M::B
-    if (-f 'Makefile.PL') {
+    if (-f 'Makefile.PL' && !$eumm) {
         system('perl Makefile.PL');
         my $meta = YAML::Tiny::Load(slurp 'META.yml');
         delete $meta->{configure_requires}->{'ExtUtils::MakeMaker'};
@@ -152,12 +153,20 @@ $build->create_build_script();
     }
     system("git add xt/");
 
-    system("perl Build.PL");
-    unlink('MANIFEST') if -f 'MANIFEST';
-    system("./Build manifest");
-    system("./Build test");
-    system("./Build disttest");
-    system("./Build distclean");
+    if ($eumm) {
+        system("perl Makefile.PL");
+        system("make manifest");
+        system("make test");
+        system("make disttest");
+        system("make distclean");
+    } else {
+        system("perl Build.PL");
+        unlink('MANIFEST') if -f 'MANIFEST';
+        system("./Build manifest");
+        system("./Build test");
+        system("./Build disttest");
+        system("./Build distclean");
+    }
     system("rm -f *.bak");
 }
 
@@ -370,6 +379,7 @@ template: |
   use Test::More;
   eval "use Test::CPAN::Meta";
   plan skip_all => "Test::CPAN::Meta required for testing META.yml" if $@;
+  plan skip_all => "There is no META.yml" if unless -f "META.yml";
   meta_yaml_ok();
 ---
 file: Changes
