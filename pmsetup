@@ -15,32 +15,35 @@ use autodie ':all';
 use YAML::Tiny;
 use Data::Dumper;
 use Perl::Tidy;
+use File::Zglob;
+
+our $VERSION = '0.02';
 
 GetOptions(
     'xs' => \my $xs,
     'help' => \my $help,
     'upgrade' => \my $upgrade,
     'eumm' => \my $eumm,
+    'v|version' => \my $version,
 );
 usage() if $help;
+die "$0 $VERSION\n" if $version;
 
 sub usage {
     print "Usage: $0 [--xs] Module\n";
     exit 0;
 }
 
-our $VERSION = '0.02';
-
 my $config = pit_get(
     'pmsetup',
     require => {
         author        => 'Tokuhiro Matsuno',
-        email         => 'tokuhirom AAJKLFJEF GMAIL COM',
+        email         => 'tokuhirom AAJKLFJEF@ GMAIL COM',
     }
 );
 
 if ($upgrade) {
-    CMD_upgrade();
+    CMD_upgrade($config);
 } else {
     my $modname = shift @ARGV or usage();
        $modname =~ s/-/::/g;
@@ -61,15 +64,22 @@ sub write_file2 {
 }
 
 sub CMD_upgrade {
+    my $config = shift;
+
     my @templates = YAML::Load(join '', <DATA>);
     require Perl::Tidy;
+
+    if (-f 'Makefile.PL') {
+        system("perl Makefile.PL");
+    }
 
     for my $file (qw(MANIFEST.SKIP .gitignore)) {
         open my $ifh, '<:utf8', $file;
         my @lines = map { s/\n//r } <$ifh>;
         my @rules = grep !/^#!include_default$/, grep !/\[%/, split /\n/, [map { $_->{template} } grep { $_->{file} eq $file } @templates]->[0];
-        if (-f 'META.yml') {
-            my $meta = YAML::Tiny::Load(slurp 'META.yml');
+        my ($metafile) = grep { -f $_ } qw(META.yml MYMETA.yml);
+        if ($metafile) {
+            my $meta = YAML::Tiny::Load(slurp $metafile);
             if ($file eq 'MANIFEST.SKIP') {
                 push @rules, sprintf("^%s-", $meta->{name});
             } elsif ($file eq '.gitignore') {
@@ -92,7 +102,7 @@ sub CMD_upgrade {
     # switch to M::B
     if (-f 'Makefile.PL' && !$eumm) {
         system('perl Makefile.PL');
-        my $meta = YAML::Tiny::Load(slurp 'META.yml');
+        my $meta = YAML::Tiny::Load(slurp 'MYMETA.yml');
         delete $meta->{configure_requires}->{'ExtUtils::MakeMaker'};
         delete $meta->{build_requires}->{'ExtUtils::MakeMaker'};
         $meta->{configure_requires}->{'Module::Build'} = '0.38';
@@ -142,6 +152,10 @@ $build->create_build_script();
         system("git add LICENSE Build.PL");
     }
 
+    for (zglob("lib/**/*.pm")) {
+        system(qq!perl -i -pe 's{AAJKLFJEF }{AAJKLFJEF\@ }' $_!);
+    }
+
     for (glob("*/perlcriticrc")) {
         system("git rm $_");
     }
@@ -149,7 +163,10 @@ $build->create_build_script();
     mkpath('xt');
     for (grep { $_->{file} =~ m{^xt/} } @templates) {
         next if -f $_->{file};
-        write_file2($_->{file}, $_->{template});
+        write_file($_->{file}, $_->{template}, +{
+            config => $config,
+            module => '',
+        });
     }
     system("git add xt/");
 
@@ -383,6 +400,18 @@ template: |
   plan skip_all => "Test::CPAN::Meta required for testing META.yml" if $@;
   plan skip_all => "There is no META.yml" unless -f "META.yml";
   meta_yaml_ok();
+---
+file: xt/06_meta_author.t
+template: |
+  use strict;
+  use Test::More;
+  eval "use Parse::CPAN::Meta";
+  plan skip_all => "Parse::CPAN::Meta required for testing META.yml" unless eval "use Parse::CPAN::Meta; 1;";
+  plan skip_all => "There is no META.yml" unless -f "META.yml";
+
+  my $meta = Parse::CPAN::Meta->load_file('META.yml');
+  isnt($meta->{author}->[0], 'unknown');
+  done_testing;
 ---
 file: Changes
 template: |

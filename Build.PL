@@ -29,6 +29,7 @@ my $build = Module::Build->new(
         'Text::Xslate::Bridge::TT2Like' => 0,
         'Test::MinimumVersion' => 0,
         'Test::Perl::Critic' => 0,
+        'Pod::Parser' => 0,
     },
     no_index    => { 'directory' => [ 'inc' ] },
     name        => 'pmsetup',
