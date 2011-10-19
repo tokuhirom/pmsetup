@@ -343,6 +343,8 @@ template: |
   org
   CSS
   Amon
+  Tokuhiro
+  Matsuno
 ---
 file: xt/02_perlcritic.t
 template: |
