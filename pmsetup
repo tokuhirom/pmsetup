@@ -83,6 +83,9 @@ sub CMD_upgrade {
             }
         }->();
         my @rules = grep !/^#!include_default$/, grep !/\[%/, split /\n/, [map { $_->{template} } grep { $_->{file} eq $file } @templates]->[0];
+        unless ($eumm && $file eq 'MANIFEST.SKIP') {
+            push @rules, '^inc/';
+        }
         my ($metafile) = grep { -f $_ } qw(META.yml MYMETA.yml);
         if ($metafile) {
             my $meta = YAML::Tiny::Load(slurp $metafile);
@@ -112,6 +115,8 @@ sub CMD_upgrade {
         delete $meta->{configure_requires}->{'ExtUtils::MakeMaker'};
         delete $meta->{build_requires}->{'ExtUtils::MakeMaker'};
         $meta->{configure_requires}->{'Module::Build'} = '0.38';
+
+        $meta->{license} =~ s/unknown/perl/;
 
         my $makefile_pl = slurp('Makefile.PL');
         my ($module_name) = ($makefile_pl =~ /all_from\s*["'](.+?)["']/);
@@ -159,7 +164,7 @@ $build->create_build_script();
     }
 
     for (zglob("lib/**/*.pm")) {
-        system(qq!perl -i -pe 's{AAJKLFJEF }{AAJKLFJEF\@ }' $_!);
+        system(qq!perl -i -pe 's{AAJKLFJEF }{AAJKLFJEF\@ }; s[\{at\}][AAJKLFJEF\@]' $_!);
     }
 
     for (qw(t/pod.t xt/perlcritic.t t/perlcriticrc xt/perlcriticrc)) {
@@ -492,7 +497,7 @@ template: |
   ^blib/
   ^pm_to_blib
   ^MakeMaker-\d
-  \.gz$
+  ^[^/]+\.gz$
   \.cvsignore
   ^t/perlcritic
   ^tools/
