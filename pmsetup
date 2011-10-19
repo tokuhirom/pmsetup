@@ -74,8 +74,14 @@ sub CMD_upgrade {
     }
 
     for my $file (qw(MANIFEST.SKIP .gitignore)) {
-        open my $ifh, '<:utf8', $file;
-        my @lines = map { s/\n//r } <$ifh>;
+        my @lines = sub {
+            if (-f $file) {
+                open my $ifh, '<:utf8', $file;
+                map { s/\n//r } <$ifh>;
+            } else {
+                ()
+            }
+        }->();
         my @rules = grep !/^#!include_default$/, grep !/\[%/, split /\n/, [map { $_->{template} } grep { $_->{file} eq $file } @templates]->[0];
         my ($metafile) = grep { -f $_ } qw(META.yml MYMETA.yml);
         if ($metafile) {
@@ -156,8 +162,8 @@ $build->create_build_script();
         system(qq!perl -i -pe 's{AAJKLFJEF }{AAJKLFJEF\@ }' $_!);
     }
 
-    for (glob("*/perlcriticrc")) {
-        system("git rm $_");
+    for (qw(t/pod.t xt/perlcritic.t t/perlcriticrc xt/perlcriticrc)) {
+        system("git rm $_") if -f $_;
     }
     unlink 'xt/02_perlcritic.t' if -f 'xt/02_perlcritic.t';
     mkpath('xt');
@@ -362,6 +368,13 @@ template: |
   Amon
   Tokuhiro
   Matsuno
+  Svn
+  svn
+  diff
+  Gosuke
+  Miyashita
+  mysqldiff
+  mmm
 ---
 file: xt/02_perlcritic.t
 template: |
