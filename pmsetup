@@ -498,7 +498,6 @@ template: |
   ^tools/
   \.svn/
   ^[^/]+\.yaml$
-  ^[^/]+\.pl$
   ^\.shipit$
   \.sw[po]$
   ^Build$
@@ -513,7 +512,6 @@ template: |
   ^[% dist %]-
   ^MYMETA\.
   \b_build
-  \binc/
   ^MANIFEST\.SKIP
   \b\.gitignore
   \.bak$
