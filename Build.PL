@@ -31,6 +31,7 @@ my $build = Module::Build->new(
         'Test::Perl::Critic' => 0,
         'Pod::Parser' => 0,
         'File::Zglob' => 0,
+        'Test::Pod' =>0,
     },
     no_index    => { 'directory' => [ 'inc' ] },
     name        => 'pmsetup',
