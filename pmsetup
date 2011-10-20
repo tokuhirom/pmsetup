@@ -235,10 +235,10 @@ sub write_plugin_files {
 
     !system "ln -s lib/$path README.pod" or die $?;
 
-    !system "perl Makefile.PL" or die $?;
-    !system 'make test' or die $?;
-    !system 'make manifest' or die $?;
-    !system 'make distclean' or die $?;
+    !system "perl Build.PL" or die $?;
+    !system './Build test' or die $?;
+    !system './Build manifest' or die $?;
+    !system './Build distclean' or die $?;
 
     # initialize git repository
     !system("git init") or die $?;
