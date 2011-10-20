@@ -284,9 +284,9 @@ template: |
 
   MODULE = [% module %]    PACKAGE = [% module %]
 ---
+xs: 1
 file: Makefile.PL
 template: |
-  [% IF xs -%]
   use inc::Module::Install;
   use Module::Install::XSUtil 0.36;
   use Module::Install::AuthorTests;
@@ -307,7 +307,9 @@ template: |
   # test_requires 'Test::Requires';
   author_tests('xt');
   WriteAll;
-  [% ELSE %]
+---
+file: Build.PL
+template: |
   use strict;
   use warnings;
   use Module::Build;
@@ -340,7 +342,6 @@ template: |
       create_license => 1,
   );
   $build->create_build_script();
-  [% END %]
 ---
 file: t/00_compile.t
 template: |
