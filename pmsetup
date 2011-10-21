@@ -17,7 +17,7 @@ use Data::Dumper;
 use Perl::Tidy;
 use File::Zglob;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 GetOptions(
     'xs' => \my $xs,
@@ -167,7 +167,7 @@ $build->create_build_script();
         system(qq!perl -i -pe 's{AAJKLFJEF }{AAJKLFJEF\@ }; s[\{at\}][AAJKLFJEF\@]' $_!);
     }
 
-    for (qw(t/pod.t xt/perlcritic.t t/perlcriticrc xt/perlcriticrc)) {
+    for (qw(t/pod.t xt/perlcritic.t t/perlcriticrc xt/perlcriticrc xt/06_meta_author.t)) {
         system("git rm $_") if -f $_;
     }
     unlink 'xt/02_perlcritic.t' if -f 'xt/02_perlcritic.t';
@@ -461,6 +461,7 @@ template: |
 
   my $meta = Parse::CPAN::Meta->load_file('META.yml');
   isnt($meta->{author}->[0], 'unknown');
+  cmp_ok($meta->{'build_requires'}->{'Test::More'}, '>=', '0.98');
   done_testing;
 ---
 file: Changes
