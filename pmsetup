@@ -115,6 +115,7 @@ sub CMD_upgrade {
         delete $meta->{configure_requires}->{'ExtUtils::MakeMaker'};
         delete $meta->{build_requires}->{'ExtUtils::MakeMaker'};
         $meta->{configure_requires}->{'Module::Build'} = '0.38';
+        $meta->{build_requires}->{'Test::More'} = '0.98';
 
         $meta->{license} =~ s/unknown/perl/;
 
