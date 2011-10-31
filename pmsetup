@@ -167,7 +167,7 @@ $build->create_build_script();
         system(qq!perl -i -pe 's{AAJKLFJEF }{AAJKLFJEF\@ }; s[\{at\}][AAJKLFJEF\@]' $_!);
     }
 
-    for (qw(t/pod.t xt/perlcritic.t t/perlcriticrc xt/perlcriticrc xt/06_meta_author.t)) {
+    for (qw(t/pod.t xt/perlcritic.t t/perlcriticrc xt/perlcriticrc xt/06_meta_author.t xt/98_perlcritic.t)) {
         system("git rm $_") if -f $_;
     }
     unlink 'xt/02_perlcritic.t' if -f 'xt/02_perlcritic.t';
@@ -303,7 +303,7 @@ template: |
   cc_src_paths qw(xs);
 
   tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
-  test_requires 'Test::More' => 0.96; # done_testing, subtest
+  test_requires 'Test::More' => 0.98; # done_testing, subtest
   # test_requires 'Test::Requires';
   author_tests('xt');
   WriteAll;
@@ -460,8 +460,9 @@ template: |
   plan skip_all => "There is no META.yml" unless -f "META.yml";
 
   my $meta = Parse::CPAN::Meta->load_file('META.yml');
-  isnt($meta->{author}->[0], 'unknown');
+  isnt($meta->{author}->[0], 'unknown', 'author info');
   cmp_ok($meta->{'build_requires'}->{'Test::More'}, '>=', '0.98');
+  ok($meta->{'requires'}->{'perl'}, 'metayml_declares_perl_version');
   done_testing;
 ---
 file: Changes
