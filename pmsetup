@@ -41,7 +41,7 @@ my $config = pit_get(
         email         => 'tokuhirom AAJKLFJEF@ GMAIL COM',
     }
 );
-die "E-mail address must contain '@' character for Module::Build" unless $config{email} =~ /@/;
+die "E-mail address must contain '\@' character for Module::Build" unless $config->{email} =~ /\@/;
 
 if ($upgrade) {
     CMD_upgrade($config);
@@ -493,7 +493,7 @@ template: |
 
   =head1 NAME
 
-  [% module %] -
+  [% module %] - A module for you
 
   =head1 SYNOPSIS
 
