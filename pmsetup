@@ -478,7 +478,7 @@ template: |
   package [% module %];
   use strict;
   use warnings;
-  use 5.008008;
+  use 5.010001;
   our $VERSION = '0.01';
 
   [% IF xs %]
