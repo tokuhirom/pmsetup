@@ -245,7 +245,7 @@ sub write_plugin_files {
     # initialize git repository
     !system("git init") or die $?;
     !system("git add .") or die $?;
-    !system("git ci -m 'initial import'") or die $?;
+    !system("git commit -m 'initial import'") or die $?;
 }
 
 sub write_file {
