@@ -558,6 +558,20 @@ template: |
   \b\.gitignore
   \.bak$
 ---
+file: .shipit
+chmod: 0644
+template: |
+  steps = FindVersion, ChangeVersion, CheckChangeLog, DistTest, Commit, Tag, MakeDist, UploadCPAN
+  git.push_to=origin
+---
+file: .travis.yml
+chmod: 0644
+template: |
+  language: perl
+  perl:
+    - 5.16
+    - 5.14
+---
 file: .gitignore
 chmod: 0644
 template: |
