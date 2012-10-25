@@ -555,7 +555,7 @@ template: |
   ^MYMETA\.
   \b_build
   ^MANIFEST\.SKIP
-  \b\.gitignore
+  (\b|\A)\.gitignore
   \.bak$
 ---
 file: .shipit
