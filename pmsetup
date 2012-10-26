@@ -495,7 +495,7 @@ template: |
 
   =head1 NAME
 
-  [% module %] - A module for you
+  [% module %] - ...
 
   =head1 SYNOPSIS
 
@@ -555,7 +555,7 @@ template: |
   ^MYMETA\.
   \b_build
   ^MANIFEST\.SKIP
-  (\b|\A)\.gitignore
+  \B\.gitignore
   \.bak$
 ---
 file: .shipit
