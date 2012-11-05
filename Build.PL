@@ -7,7 +7,11 @@ my $build = Module::Build->new(
     recursive_test_files => 1,
     dynamic_config       => 0,
     build_requires       => {},
+    dist_author => 'tokuhirom',
     configure_requires   => { 'Module::Build' => '0.38' },
+    build_requires => {
+        'Test::More' => 0.98,
+    },
     requires             => {
         'YAML'                          => '0',
         'Test::Spelling'                => '0',

@@ -240,6 +240,7 @@ sub write_plugin_files {
     !system "perl Build.PL" or die $?;
     !system './Build test' or die $?;
     !system './Build manifest' or die $?;
+    !system './Build distmeta' or die $?;
     !system './Build distclean' or die $?;
 
     # initialize git repository
