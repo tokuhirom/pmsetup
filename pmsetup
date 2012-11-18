@@ -508,6 +508,8 @@ template: |
 
   [% module %] is
 
+  B<THIS IS A DEVELOPMENT RELEASE. API MAY CHANGE WITHOUT NOTICE>.
+
   =head1 AUTHOR
 
   [% config.author %] E<lt>[% config.email %]E<gt>
