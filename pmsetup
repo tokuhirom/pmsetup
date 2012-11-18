@@ -350,9 +350,10 @@ template: |
 file: t/00_compile.t
 template: |
   use strict;
-  use Test::More tests => 1;
+  use Test::More;
 
   BEGIN { use_ok '[% module %]' }
+  done_testing;
 ---
 file: xt/01_podspell.t
 template: |
@@ -416,6 +417,7 @@ template: |
   Miyashita
   mysqldiff
   mmm
+  JSON
 ---
 file: xt/02_perlcritic.t
 template: |
