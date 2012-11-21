@@ -327,7 +327,7 @@ template: |
       },
       configure_requires   => { 'Module::Build' => '0.38' },
       requires             => {
-          perl => '5.010001',
+          perl => '5.008005',
           # 'Exporter'                      => '0',
           'parent'                        => '0',
           # 'Plack'                         => '0.9949',
@@ -483,7 +483,7 @@ template: |
   package [% module %];
   use strict;
   use warnings;
-  use 5.010001;
+  use 5.008005;
   our $VERSION = '0.01';
 
   [% IF xs %]
