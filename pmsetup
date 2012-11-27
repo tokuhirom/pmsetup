@@ -232,7 +232,7 @@ sub write_plugin_files {
         my $file = $tmpl->{file};
            $file =~ s/(\$\w+)/$1/eeg;
         write_file($file, $tmpl->{template}, $vars);
-        chmod oct($tmpl->{chmod}), $tmpl->{file} if $tmpl->{chmod};
+        chmod oct($tmpl->{chmod}), $file if $tmpl->{chmod};
     }
 
     !system "ln -s lib/$path README.pod" or die $?;
