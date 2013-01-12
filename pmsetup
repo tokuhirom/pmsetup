@@ -352,7 +352,10 @@ template: |
   use strict;
   use Test::More;
 
-  BEGIN { use_ok '[% module %]' }
+  use_ok $_ for qw(
+      [% module %]
+  );
+
   done_testing;
 ---
 file: xt/01_podspell.t
