@@ -16,6 +16,7 @@ use YAML::Tiny;
 use Data::Dumper;
 use Perl::Tidy;
 use File::Zglob;
+use Time::Piece;
 
 our $VERSION = '0.03';
 
@@ -478,7 +479,7 @@ file: Changes
 template: |
   Revision history for Perl extension [% module %]
 
-  0.01    [% localtime %]
+  0.0.1 [% localtime->strftime('%Y-%m-%dT%H:%M:%S') %]
       - original version
 ---
 file: lib/$path
@@ -487,7 +488,7 @@ template: |
   use strict;
   use warnings;
   use 5.008005;
-  our $VERSION = '0.01';
+  our $VERSION = '0.0.1';
 
   [% IF xs %]
   require XSLoader;
