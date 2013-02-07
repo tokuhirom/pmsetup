@@ -479,7 +479,7 @@ file: Changes
 template: |
   Revision history for Perl extension [% module %]
 
-  0.0.1 [% localtime->strftime('%Y-%m-%dT%H:%M:%S') %]
+  0.0.1 [% localtime.strftime('%Y-%m-%dT%H:%M:%S') %]
       - original version
 ---
 file: lib/$path
