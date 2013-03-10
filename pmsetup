@@ -316,22 +316,16 @@ file: Build.PL
 template: |
   use strict;
   use warnings;
-  use Module::Build;
+  use Module::Build::Pluggable qw(
+      CPANfile
+  );
 
-  my $build = Module::Build->new(
+  my $build = Module::Build::Pluggable->new(
       license              => 'perl',
       dynamic_config       => 0,
 
-      build_requires       => {
-          'Test::More' => '0.98',
-          'Test::Requires' => 0,
-      },
-      configure_requires   => { 'Module::Build' => '0.38' },
       requires             => {
           perl => '5.008005',
-          # 'Exporter'                      => '0',
-          'parent'                        => '0',
-          # 'Plack'                         => '0.9949',
       },
 
       no_index    => { 'directory' => [ 'inc' ] },
@@ -347,6 +341,27 @@ template: |
       create_license => 1,
   );
   $build->create_build_script();
+---
+file: cpanfile
+template: |
+  # requires 'Exporter'                      => '0';
+  requires 'parent'                        => '0';
+  # requires 'Plack'                         => '0.9949';
+
+  on 'configure' => sub {
+      requires 'Module::Build::Pluggable';
+      requires 'Module::Build' => '0.38';
+      requires 'Module::Build::Pluggable::CPANfile';
+  };
+
+  on 'test' => sub {
+      requires 'Test::More' => '0.98';
+      requires 'Test::Requires' => 0;
+  };
+
+  on 'devel' => sub {
+      # Dependencies for developers
+  };
 ---
 file: t/00_compile.t
 template: |
