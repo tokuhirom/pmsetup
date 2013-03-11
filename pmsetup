@@ -134,15 +134,14 @@ sub CMD_upgrade {
             <<'...', +{%$meta, module_name => $module_name}));
 use strict;
 use warnings FATAL => 'all';
-use Module::Build;
+use Module::Build::Pluggable qw(
+    CPANfile
+);
 
 my $build = Module::Build->new(
     license => '[% license %]',
     recursive_test_files => 1,
     dynamic_config => 0,
-    build_requires => [% Dumper(build_requires) -%],
-    configure_requires => [% Dumper(configure_requires) -%],
-    requires => [% Dumper(requires) -%],
     no_index => [% Dumper(no_index) -%],
     name => '[% name %]',
     module_name => '[% module_name %]',
@@ -153,6 +152,37 @@ my $build = Module::Build->new(
     create_license => 1,
 );
 $build->create_build_script();
+...
+
+        write_file2('cpanfile', Text::Xslate->new(syntax => 'TTerse', type => 'text', module => ['Data::Dumper'])->render_string(
+            <<'...', +{%$meta, module_name => $module_name}));
+[% FOR k IN requires -%]
+requires '[% k %]' => '[% requires[k] %]';
+[% END -%]
+
+on 'configure' => sub {
+[% FOR k IN configure_requires -%]
+  requires '[% k %]' => '[% configure_requires[k] %]';
+[% END -%]
+};
+
+on 'build' => sub {
+[% FOR k IN build_requires -%]
+  requires '[% k %]' => '[% build_requires[k] %]';
+[% END -%]
+};
+
+on 'test' => sub {
+[% FOR k IN test_requires -%]
+  requires '[% k %]' => '[% test_requires[k] %]';
+[% END -%]
+};
+
+on 'develop' => sub {
+[% FOR k IN develop_requires -%]
+  requires '[% k %]' => '[% develop_requires[k] %]';
+[% END -%]
+};
 ...
         system("perltidy -b Build.PL");
         system("cp META.yml META.yml.bak");
@@ -318,6 +348,7 @@ template: |
   use warnings;
   use Module::Build::Pluggable qw(
       CPANfile
+      GithubMeta
   );
 
   my $build = Module::Build::Pluggable->new(
@@ -352,6 +383,7 @@ template: |
       requires 'Module::Build::Pluggable';
       requires 'Module::Build' => '0.38';
       requires 'Module::Build::Pluggable::CPANfile';
+      requires 'Module::Build::Pluggable::GithubMeta';
   };
 
   on 'test' => sub {
@@ -581,6 +613,9 @@ template: |
   ^MANIFEST\.SKIP
   \B\.gitignore
   \.bak$
+  ^\.carton/
+  ^carton\.lock$
+  ^local/
 ---
 file: .shipit
 chmod: 0644
