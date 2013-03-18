@@ -136,15 +136,19 @@ use strict;
 use warnings FATAL => 'all';
 use Module::Build::Pluggable qw(
     CPANfile
+    GithubMeta
 );
 
-my $build = Module::Build->new(
+my $build = Module::Build::Pluggable->new(
     license => '[% license %]',
     recursive_test_files => 1,
     dynamic_config => 0,
     no_index => [% Dumper(no_index) -%],
     name => '[% name %]',
     module_name => '[% module_name %]',
+    requires => {
+        perl => '5.008005',
+    },
 
     test_files => (-d '.git' || $ENV{RELEASE_TESTING}) ? 't/ xt/' : 't/',
 
@@ -154,32 +158,32 @@ my $build = Module::Build->new(
 $build->create_build_script();
 ...
 
-        write_file2('cpanfile', Text::Xslate->new(syntax => 'TTerse', type => 'text', module => ['Data::Dumper'])->render_string(
+        write_file2('cpanfile', Text::Xslate->new(syntax => 'TTerse', type => 'text', module => ['Data::Dumper', 'Text::Xslate::Bridge::Star'])->render_string(
             <<'...', +{%$meta, module_name => $module_name}));
-[% FOR k IN requires -%]
+[% FOR k IN requires.keys() -%]
 requires '[% k %]' => '[% requires[k] %]';
 [% END -%]
 
 on 'configure' => sub {
-[% FOR k IN configure_requires -%]
+[% FOR k IN configure_requires.keys() -%]
   requires '[% k %]' => '[% configure_requires[k] %]';
 [% END -%]
 };
 
 on 'build' => sub {
-[% FOR k IN build_requires -%]
+[% FOR k IN build_requires.keys() -%]
   requires '[% k %]' => '[% build_requires[k] %]';
 [% END -%]
 };
 
 on 'test' => sub {
-[% FOR k IN test_requires -%]
+[% FOR k IN test_requires.keys() -%]
   requires '[% k %]' => '[% test_requires[k] %]';
 [% END -%]
 };
 
 on 'develop' => sub {
-[% FOR k IN develop_requires -%]
+[% FOR k IN develop_requires.keys() -%]
   requires '[% k %]' => '[% develop_requires[k] %]';
 [% END -%]
 };
